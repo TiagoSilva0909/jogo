@@ -1,0 +1,14 @@
+body{
+margin: 0%;
+ background: url("assets/bg.gif") no-repeat center center;
+  background-size: cover;
+
+
+}
+
+
+
+canvas{
+display: block;
+
+}
