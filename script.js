@@ -146,17 +146,6 @@ function updatePlayerState() {
     
      }
 
-else if (keys[" "]) {
-        player.state = 'chutealto';
-        player.isAttacking = true;// Avisa o jogo que é um golpe e não pode ser interrompido//
-        player.frameX = 0;
-        player.frameY = 8;
-        player.maxFrame =6;
-
-        animationSpeed = 5;//Velocidade super rápida para o soco!//
-    
-     }
-
 
 
 
@@ -184,11 +173,11 @@ else if (keys[" "]) {
 
 function animate() {
     
-    // ==========================================
-    // 1. FÍSICA E MOVIMENTO (Acontece nos bastidores)
+   // ==========================================
+    // 1. FÍSICA E MOVIMENTO 
     // ==========================================
 
-    // Gravidade (Puxa para baixo)
+    // Gravidade
     player.y += player.vy;
     if (player.y < player.groundY) {
         player.vy += player.gravity;
@@ -199,13 +188,12 @@ function animate() {
         player.isJumping = false;
     }
 
-    // Pulo (Aperta espaço, só funciona se estiver no chão)
-    if (keys[" "] && !player.isJumping) {
-        player.vy = player.jumpPower; // Usa o jumpPower que você colocou lá em cima (-12)
+    // Pulo (Aperta espaço, só funciona se estiver no chão e NÃO estiver atacando)
+    if (keys[" "] && !player.isJumping && !player.isAttacking) {
+        player.vy = player.jumpPower; 
     }
 
-    // Movimento Direita / Esquerda (Andar)
-    // Lógica: Ele pode andar se NÃO estiver batendo. MAS, se estiver no ar, ele pode se mover livremente!
+    // Movimento Lateral (Permite andar no chão e se mover no ar livremente!)
     let isMoving = false;
     if (keys.a && (!player.isAttacking || player.isJumping)) {
         player.x -= player.speed;
@@ -218,48 +206,60 @@ function animate() {
 
 
     // ==========================================
-    // 2. MÁQUINA DE ESTADOS VISUAIS (Qual desenho mostrar)
+    // 2. MÁQUINA DE ESTADOS VISUAIS 
     // ==========================================
     
-    // Só deixa iniciar uma nova animação se ele NÃO estiver no meio de um golpe
+    // Só deixa mudar a animação se ele NÃO estiver travado no meio de um golpe
     if (!player.isAttacking) {
         
+        // 1º Prioridade: GOLPES (Podem ser feitos no chão ou no ar)
         if (keys.g) {
-            // SOCO (Pode ser feito no chão ou no ar!)
             player.state = 'socodireto';
             player.isAttacking = true;
             player.frameX = 0;
-            player.frameY = 2; // (Ajuste para a sua linha do soco)
+            player.frameY = 2; 
             player.maxFrame = 2;
             animationSpeed = 4;
             
         } else if (keys.k) {
-            // CHUTE (Pode ser feito no chão ou no ar!)
             player.state = 'chute';
             player.isAttacking = true;
             player.frameX = 0;
-            player.frameY = 5; // (Ajuste para a sua linha do chute)
+            player.frameY = 5; 
             player.maxFrame = 4;
             animationSpeed = 5;
             
+        // 2º Prioridade: PULO (Se não estiver batendo, mas estiver no ar)
         } else if (player.isJumping) {
-            // ANIMAÇÃO DE PULAR (Se estiver no ar e não estiver batendo)
-            player.state = 'jump';
-            player.frameY = 8; // (Ajuste para a linha do pulo)
-            player.maxFrame = 4;
-            animationSpeed = 8;
             
+            // Garante que a animação do pulo comece do primeiro desenho
+            if (player.state !== 'jump') {
+                player.frameX = 0; 
+            }
+            player.state = 'jump';
+            
+            // ==========================================
+            // AJUSTE ESSES NÚMEROS PARA A SUA IMAGEM:
+            // ==========================================
+            player.frameY = 8;   // <-- Qual é a linha do pulo na sua imagem? (Conte de cima pra baixo, começando do 0)
+            player.maxFrame = 4; // <-- Quantos desenhos de pulo tem nessa linha? (Coloque o Total menos 1)
+            // ==========================================
+            
+            animationSpeed = 8; // Se a animação do pulo ficar muito rápida, aumente esse número
+            
+
+            
+        // 3º Prioridade: ANDAR (Se não estiver batendo, nem no ar, mas estiver movendo)
         } else if (isMoving) {
-            // ANIMAÇÃO DE ANDAR (No chão)
             player.state = 'walk';
-            player.frameY = 1; // (Ajuste para a linha de andar)
+            player.frameY = 1; // (Linha de andar)
             player.maxFrame = 3;
             animationSpeed = 8;
             
+        // 4º Prioridade: PARADO
         } else {
-            // ANIMAÇÃO PARADO (IDLE)
             player.state = 'idle';
-            player.frameY = 0; // (Ajuste para a linha dele parado respirando)
+            player.frameY = 0; // (Linha parado)
             player.maxFrame = 3;
             animationSpeed = 10;
         }
