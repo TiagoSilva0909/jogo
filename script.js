@@ -18,7 +18,7 @@ const keys = {
     g: false,
     b: false,
     n: false,
-    "": false //tecla espaço//
+    " ": false //tecla espaço//
 
 
 
@@ -63,7 +63,17 @@ const player = {
     
     // Sistema de Estados
     state: 'idle', // Pode ser: 'idle' (parado), 'walk' (andando), 'punch' (soco), 'kick' (chute)
-    isAttacking: false 
+    isAttacking: false ,
+
+// ---> COLOQUE ISSO AQUI: AS VARIÁVEIS DE FÍSICA! <---
+    vy: 0,             
+    gravity: 0.5,      
+    jumpPower: -12,    
+    isJumping: false,  
+    groundY: window.innerHeight - 395 // O chão tem que ser igual ao 'y' inicial!
+
+
+
 };
 
 /** Lógica de Animação */
@@ -136,7 +146,7 @@ function updatePlayerState() {
     
      }
 
-else if (keys[""]) {
+else if (keys[" "]) {
         player.state = 'chutealto';
         player.isAttacking = true;// Avisa o jogo que é um golpe e não pode ser interrompido//
         player.frameX = 0;
