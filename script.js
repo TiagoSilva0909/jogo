@@ -76,6 +76,12 @@ const player = {
 
 };
 
+// Adicione isso abaixo do seu objeto "player"
+const hadoukens = []; 
+let hadoukenTimer = 0;
+
+
+
 /** Lógica de Animação */
 let frameTimer = 0;
 let animationSpeed = 8; // Quanto menor o número, mais rápida a animação
@@ -85,14 +91,14 @@ function updatePlayerState() {
     if (player.isAttacking) return;
 
     // Define qual estado ele deve entrar baseado nas teclas apertadas
-    if (keys.j) {
-        player.state = 'punch';
-        player.isAttacking = true;
-        player.frameX = 0; // Reinicia a animação para o começo do soco
-        player.frameY = 0; // Linha do soco na sua sprite sheet (ajuste se precisar)
-        player.maxFrame = 3;
-    
-    animationSpeed = 5;
+    if (keys.j && !player.isAttacking && !player.isJumping) {
+            player.state = 'hadouken'; // Nome do estado atualizado
+            player.isAttacking = true;
+            player.hasFired = false;   // Controla se a bola já saiu da mão
+            player.frameX = 0;
+            player.frameY = 0; 
+            player.maxFrame = 3;
+            animationSpeed = 5;
     
     
     } else if (keys.k) {
@@ -113,7 +119,7 @@ function updatePlayerState() {
         player.maxFrame = 1;
     } 
     else if (keys.g) {
-        player.state = 'socodireto';
+        player.state = 'socoDireto';
         player.isAttacking = true;// Avisa o jogo que é um golpe e não pode ser interrompido//
         player.frameX = 0;
         player.frameY = 2;
@@ -125,7 +131,7 @@ function updatePlayerState() {
 }
 
      else if (keys.b) {
-        player.state = 'chutealto';
+        player.state = 'chuteAlto';
         player.isAttacking = true;// Avisa o jogo que é um golpe e não pode ser interrompido//
         player.frameX = 0;
         player.frameY = 6;
@@ -136,7 +142,7 @@ function updatePlayerState() {
      }
 
    else if (keys.n) {
-        player.state = 'chutealto';
+        player.state = 'chuteGiratorio';
         player.isAttacking = true;// Avisa o jogo que é um golpe e não pode ser interrompido//
         player.frameX = 0;
         player.frameY = 7;
@@ -145,16 +151,6 @@ function updatePlayerState() {
         animationSpeed = 5;//Velocidade super rápida para o soco!//
     
      }
-
-
-
-
-
-
-
-
-
-
 
     else {
         // Se nenhuma tecla for apertada, ele fica parado (idle)
@@ -172,12 +168,7 @@ function updatePlayerState() {
 }
 
 function animate() {
-    
-   // ==========================================
-    // 1. FÍSICA E MOVIMENTO 
-    // ==========================================
-
-    // Gravidade
+    // FÍSICA
     player.y += player.vy;
     if (player.y < player.groundY) {
         player.vy += player.gravity;
@@ -188,18 +179,16 @@ function animate() {
         player.isJumping = false;
     }
 
-    // Pulo (Aperta espaço, só funciona se estiver no chão e NÃO estiver atacando)
     if (keys[" "] && !player.isJumping && !player.isAttacking) {
         player.vy = player.jumpPower; 
     }
 
-    // Movimento Lateral (Permite andar no chão e se mover no ar livremente!)
     let isMoving = false;
-    if (keys.a && (!player.isAttacking || player.isJumping)) {
+    if (keys.a) {
         player.x -= player.speed;
         isMoving = true;
     }
-    if (keys.d && (!player.isAttacking || player.isJumping)) {
+    if (keys.d) {
         player.x += player.speed;
         isMoving = true;
     }
@@ -229,7 +218,7 @@ function animate() {
             player.maxFrame = 4;
             animationSpeed = 5;
             
-        // 2º Prioridade: PULO (Se não estiver batendo, mas estiver no ar)
+       // 2º Prioridade: PULO (Se não estiver batendo, mas estiver no ar)
         } else if (player.isJumping) {
             
             // Garante que a animação do pulo comece do primeiro desenho
@@ -239,14 +228,13 @@ function animate() {
             player.state = 'jump';
             
             // ==========================================
-            // AJUSTE ESSES NÚMEROS PARA A SUA IMAGEM:
+            // AJUSTES APLICADOS PARA O PULO DO KEN:
             // ==========================================
-            player.frameY = 8;   // <-- Qual é a linha do pulo na sua imagem? (Conte de cima pra baixo, começando do 0)
-            player.maxFrame = 4; // <-- Quantos desenhos de pulo tem nessa linha? (Coloque o Total menos 1)
+            player.frameY = 8;   // A linha do pulo está correta (índice 8)
+            player.maxFrame = 6; // São 7 frames no total (do 0 ao 6)
             // ==========================================
             
-            animationSpeed = 8; // Se a animação do pulo ficar muito rápida, aumente esse número
-            
+            animationSpeed = 6;  // Deixei um pouquinho mais rápido para encaixar com o tempo de voo do Ken
 
             
         // 3º Prioridade: ANDAR (Se não estiver batendo, nem no ar, mas estiver movendo)
@@ -265,24 +253,34 @@ function animate() {
         }
     }
 /************************************************************************************ */
-    
+    // DISPARO DO HADOUKEN
+        // Verifica se é a animação do hadouken, se chegou no frame 2 e se já não atirou
+        if (player.state === 'hadouken' && player.frameX === 2 && !player.hasFired) {
+            hadoukens.push({
+                x: player.x + 180, // Posição X da mão do Ken
+                y: player.y + 7,  // Posição Y da mão do Ken
+                speed: 15,         // Velocidade da bola de fogo
+                frameX: 0,
+                frameY: 4,         // Linha 4 do player.png (onde está a bola azul)
+            });
+            player.hasFired = true; // Marca que já atirou para não criar várias
+        }
+
+
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     updatePlayerState();
 
-    // Contador de frames para controlar a velocidade da animação da sprite
+   // Contador de frames para controlar a velocidade da animação da sprite
     frameTimer++;
     
     if (frameTimer % animationSpeed === 0) {
-        // Se ele estiver apenas parado (idle), não precisa passar os quadros,
-        // a não ser que a linha 1 tenha uma animação legal dele respirando.
-        // Se você quiser que ele fique 100% estático quando parado, comente a linha abaixo.
         player.frameX++; 
 
-        // Se a animação chegou no último quadro
         if (player.frameX > player.maxFrame) {
+            // Se ele estava atacando, volta a ficar parado (idle)
             if (player.isAttacking) {
-                // Se era um ataque que terminou, libera ele para voltar a ficar parado
                 player.isAttacking = false;
                 player.state = 'idle';
                 player.frameY = 1;
@@ -294,13 +292,7 @@ function animate() {
             }
         }
     }
-
-
-
-
-
-
-
+    
     // Desenha o Ken na tela
     ctx.drawImage(
         playerImg,
@@ -314,10 +306,43 @@ function animate() {
         player.height   // Tamanho final na tela
     );
 
-    requestAnimationFrame(animate);
-}
+    // LÓGICA E DESENHO DOS HADOUKENS
+    hadoukenTimer++;
+    for (let i = 0; i < hadoukens.length; i++) {
+        let h = hadoukens[i];
+        
+        // Move o hadouken para a direita
+        h.x += h.speed; 
 
-// Inicia o jogo depois que a imagem carregar para evitar tela preta inicial
+        // Anima a bola de fogo alternando os frames (0 e 1) da linha 4
+        if (hadoukenTimer % 5 === 0) {
+            h.frameX = (h.frameX === 0) ? 1 : 0;
+        }
+
+        // Desenha a magia na tela
+        ctx.drawImage(
+            playerImg,
+            h.frameX * SPRITE_WIDTH,
+            h.frameY * SPRITE_HEIGHT,
+            SPRITE_WIDTH,
+            SPRITE_HEIGHT,
+            h.x,
+            h.y,
+            player.width,  
+            player.height  
+        );
+
+        // Se o hadouken sair da tela, remove da lista
+        if (h.x > canvas.width) {
+            hadoukens.splice(i, 1);
+            i--;
+        }
+    }
+
+    requestAnimationFrame(animate);
+} // <--- FIM DA FUNÇÃO ANIMATE (Isso aqui que estava faltando/bagunçado)
+
+// Inicia o jogo depois que a imagem carregar
 playerImg.onload = () => {
     animate();
 };
