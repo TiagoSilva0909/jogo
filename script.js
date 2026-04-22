@@ -14,7 +14,6 @@ const keys = {
     a: false,
     d: false,
     j: false,
-    k: false,
     g: false,
     b: false,
     n: false,
@@ -40,6 +39,39 @@ window.addEventListener("keyup", (e) => {
     }
 });
 
+/** Configuração da Sprite do Carro */
+const carImg = new Image();
+carImg.src = "assets/car.png";
+
+const car = {
+    x: window.innerWidth - 600,  // Posição do carro na tela (mais para a direita)
+    y: window.innerHeight - 380, // Altura parecida com o chão do Ken
+    width: 450,                  // Largura do carro na tela
+    height: 200,                 // Altura do carro na tela
+    hp: 100,                     // Vida do carro
+    
+    // Como a sua imagem car.png tem vários pedaços misturados, 
+    // você vai precisar ajustar esses recortes (sx, sy, sw, sh) depois 
+    // para pegar exatamente o carro inteiro em cada estágio de dano.
+    states: {
+        intacto:   { sx: 500, sy: 300, sw: 250, sh: 100 }, // Valores de CHUTE para o recorte
+        amassado:  { sx: 250, sy: 300, sw: 250, sh: 100 }, 
+        destruido: { sx: 0,   sy: 0,   sw: 250, sh: 100 }
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
 /** Configuração da Sprite do Ken */
 const playerImg = new Image();
 playerImg.src = "assets/player.png";
@@ -50,6 +82,9 @@ const SPRITE_WIDTH = 70;
 const SPRITE_HEIGHT = 80;
 
 const player = {
+    isAttacking: false,
+    hasHit: false,
+    
     x: 200,
     y: window.innerHeight - 395, // Mantém ele no chão baseado na altura da tela
     width: 275,  // Largura dele desenhado na tela (2.5x o tamanho original)
@@ -166,7 +201,7 @@ function updatePlayerState() {
     if (player.x < 0) player.x = 0;
     if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 }
-
+ /**ANIMATEEEEEEEEEEE */
 function animate() {
     // FÍSICA
     player.y += player.vy;
@@ -259,7 +294,7 @@ function animate() {
             hadoukens.push({
                 x: player.x + 180, // Posição X da mão do Ken
                 y: player.y + 7,  // Posição Y da mão do Ken
-                speed: 15,         // Velocidade da bola de fogo
+                speed: 9,         // Velocidade da bola de fogo
                 frameX: 0,
                 frameY: 4,         // Linha 4 do player.png (onde está a bola azul)
             });
@@ -282,6 +317,7 @@ function animate() {
             // Se ele estava atacando, volta a ficar parado (idle)
             if (player.isAttacking) {
                 player.isAttacking = false;
+                player.hasHit = false;
                 player.state = 'idle';
                 player.frameY = 1;
                 player.maxFrame = 3;
